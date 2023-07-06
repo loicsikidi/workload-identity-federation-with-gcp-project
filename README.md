@@ -32,22 +32,12 @@ gcloud services enable storage.googleapis.com
 ### Enable Cloud Storage audit logs
 
 ```bash
-# Get current project's IAM policies
-gcloud projects get-iam-policy $PROJECT > /tmp/policy.yaml
-```
+export GCSLOGCONF='{ "auditLogConfigs": [ { "logType": "DATA_READ" } ], "service": "storage.googleapis.com" }'
 
-Append the following lines to `/tmp/policy.yaml`:
-
-```yaml
-auditConfigs:
-- auditLogConfigs:
-  - logType: DATA_READ
-  service: storage.googleapis.com
-```
-
-```bash
-# Save changes
-gcloud projects set-iam-policy $PROJECT /tmp/policy.yaml
+gcloud projects set-iam-policy <(
+  gcloud projects get-iam-policy --format json | \
+  jq --argjson conf "$GCSLOGCONF" '.auditConfigs += [$conf]'
+)
 ```
 
 ```bash
